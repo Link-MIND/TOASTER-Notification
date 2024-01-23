@@ -43,10 +43,10 @@ public class FCMScheduler {
         log.info("리마인드 알람");
 
             // 오늘 요일
-        int today = LocalDateTime.now().getDayOfWeek().getValue();
+        String today = String.valueOf(LocalDateTime.now().getDayOfWeek().getValue());
 
 
-            timerRepository.findAll().stream().filter(reminder -> reminder.getRemindDates().contains(today)).forEach(timer -> {
+            timerRepository.findByRemindDatesContainingToday(today).forEach(timer -> {
                 LocalTime now = LocalTime.now();
 
                 //한국 시간대로 변환
