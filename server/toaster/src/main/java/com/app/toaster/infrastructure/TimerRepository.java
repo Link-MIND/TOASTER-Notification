@@ -26,7 +26,7 @@ public interface TimerRepository extends JpaRepository<Reminder, Long> {
     @Query("select r.category from Reminder r where r.id = :id")
     Category findCategoryByReminderId(@Param("id") Long reminderId);
 
-    @Query("SELECT r FROM Reminder r WHERE CAST(r.remindDates AS string) like :today")
+    @Query("SELECT r FROM Reminder r join fetch r.user where CAST(r.remindDates AS string) like :today")
     List<Reminder> findByRemindDatesContainingToday(@Param("today") String today);
 
 
