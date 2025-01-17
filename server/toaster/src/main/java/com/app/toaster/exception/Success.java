@@ -54,9 +54,7 @@ public enum Success {
 	/**
 	 * 204 NO_CONTENT
 	 */
-	SEARCH_SUCCESS_BUT_IS_EMPTY(HttpStatus.NO_CONTENT, "검색에 성공했지만 조회된 내용이 없습니다.")
-
-	;
+	SEARCH_SUCCESS_BUT_IS_EMPTY(HttpStatus.NO_CONTENT, "검색에 성공했지만 조회된 내용이 없습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;
