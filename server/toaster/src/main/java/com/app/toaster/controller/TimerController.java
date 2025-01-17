@@ -24,26 +24,24 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/timer")
 public class TimerController {
 
-    private final TimerService timerService;
+	private final TimerService timerService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse createTimer(
-            @RequestBody CreateCronRequestDto createCronRequestDto
-            ){
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ApiResponse createTimer(
+		@RequestBody CreateCronRequestDto createCronRequestDto
+	) {
+		timerService.createTimer(createCronRequestDto);
+		return ApiResponse.success(Success.CREATE_TIMER_SUCCESS);
+	}
 
-        timerService.createTimer(createCronRequestDto);
-        return ApiResponse.success(Success.CREATE_TIMER_SUCCESS);
-    }
-
-
-    @PatchMapping("/datetime/{timerId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ApiResponse updateTimerDatetime(
-            @RequestBody UpdateCronDateTimeDto updateTimerDateTimeDto){
-
-        timerService.updateTimerDatetime(updateTimerDateTimeDto);
-        return ApiResponse.success(Success.UPDATE_TIMER_DATETIME_SUCCESS);
-    }
+	@PatchMapping("/datetime/{timerId}")
+	@ResponseStatus(HttpStatus.OK)
+	public ApiResponse updateTimerDatetime(
+		@RequestBody UpdateCronDateTimeDto updateTimerDateTimeDto
+	) {
+		timerService.updateTimerDatetime(updateTimerDateTimeDto);
+		return ApiResponse.success(Success.UPDATE_TIMER_DATETIME_SUCCESS);
+	}
 
 }
