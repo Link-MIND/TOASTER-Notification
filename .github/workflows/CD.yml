@@ -44,7 +44,7 @@ jobs:
     - name: docker image 빌드 및 푸시
       run: |
         docker build --platform linux/amd64 -t mmihye/toaster .
-        docker push mmihye/toaster
+        docker push mmihye/toaster_notification
       working-directory: ${{ env.working-directory }}
 
   deploy-cd:      
