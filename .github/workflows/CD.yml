@@ -68,4 +68,4 @@ jobs:
         key: ${{ secrets.RELEASE_SERVER_KEY }}
         script: |
           cd ~ 
-          ./deploy.sh &
+          ./deploy.sh
