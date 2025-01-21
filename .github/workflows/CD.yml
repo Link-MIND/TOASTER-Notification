@@ -69,4 +69,3 @@ jobs:
         script: |
           cd ~ 
           ./deploy.sh &
-          exit 0
