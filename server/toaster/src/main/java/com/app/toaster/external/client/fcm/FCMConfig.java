@@ -64,44 +64,12 @@ public class FCMConfig {
             }
         } else {
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(refreshToken))
-                    .build();
+                .setCredentials(GoogleCredentials.fromStream(refreshToken))
+                .build();
 
             firebaseApp = FirebaseApp.initializeApp(options);
         }
 
         return FirebaseMessaging.getInstance(firebaseApp);
-
-
-    }
-
-    // TODO 플랫폼마다 별도의 설정이 필요한 경우 사용
-
-    // Android
-    public AndroidConfig TokenAndroidConfig(FCMPushRequestDto request) {
-        return AndroidConfig.builder()
-//                .setCollapseKey(request.getCollapseKey())
-                .setNotification(AndroidNotification.builder()
-                        .setTitle(request.getTitle())
-                        .setBody(request.getBody())
-                        .build())
-                .build();
-    }
-
-    // Apple
-    public ApnsConfig TokenApnsConfig(FCMPushRequestDto request) {
-        return ApnsConfig.builder()
-                .setAps(Aps.builder()
-                        .setAlert(
-                                ApsAlert.builder()
-                                        .setTitle(request.getTitle())
-                                        .setBody(request.getBody())
-//                                        .setLaunchImage(request.getImgUrl())
-                                        .build()
-                        )
-//                        .setCategory(request.getCollapseKey())
-                        .setSound("default")
-                        .build())
-                .build();
     }
 }
