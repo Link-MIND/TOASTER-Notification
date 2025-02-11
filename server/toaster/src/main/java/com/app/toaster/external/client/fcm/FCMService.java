@@ -22,7 +22,6 @@ import com.app.toaster.domain.Category;
 import com.app.toaster.domain.Reminder;
 import com.app.toaster.exception.model.NotFoundException;
 import com.app.toaster.external.client.sqs.SqsProducer;
-import com.app.toaster.infrastructure.CategoryRepository;
 import com.app.toaster.infrastructure.TimerRepository;
 import com.app.toaster.infrastructure.ToastRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,9 +40,6 @@ import okhttp3.Response;
 @Service
 @RequiredArgsConstructor
 public class FCMService {
-    private final ToastRepository toastRepository;
-    private final TimerRepository timerRepository;
-
     private final ObjectMapper objectMapper;  // FCM의 body 형태에 따라 생성한 값을 문자열로 저장하기 위한 Mapper 클래스
 
     @Value("${fcm.key.path}")
@@ -53,25 +49,20 @@ public class FCMService {
     @Value("${fcm.topic}")
     private String topic;
 
-
     private static ScheduledFuture<?> scheduledFuture;
     private final TaskScheduler taskScheduler;
     private final PlatformTransactionManager transactionManager;
     private final SqsProducer sqsProducer;
-
-
-    private final int PUSH_MESSAGE_NUMBER = 5;
 
     /**
      * 단일 기기
      * - Firebase에 메시지를 수신하는 함수 (헤더와 바디 직접 만들기)
      */
     @Async
-    public String pushAlarm(FCMPushRequestDto request) throws IOException {
+    public void pushAlarm(FCMPushRequestDto request) throws IOException {
 
         String message = makeSingleMessage(request);
         sendPushMessage(message);
-        return "알림을 성공적으로 전송했습니다. targetUserId = " + request.getTargetToken();
     }
 
     // 요청 파라미터를 FCM의 body 형태로 만들어주는 메서드 [단일 기기]
@@ -122,45 +113,6 @@ public class FCMService {
 
         return googleCredentials.getAccessToken().getTokenValue();
     }
-    @Async
-    // 푸시알림 스케줄러
-    public void schedulePushAlarm(String cronExpression,Long timerId) {
-
-        scheduledFuture = taskScheduler.schedule(() -> {
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-                Reminder timer = timerRepository.findById(timerId).orElseThrow(
-                        ()-> new NotFoundException(Error.NOT_FOUND_TIMER, Error.NOT_FOUND_TIMER.getMessage())
-                );
-
-                LocalTime now = LocalTime.now();
-
-                // 한국 시간대로 변환
-                //ZoneId koreaTimeZone = ZoneId.of("Asia/Seoul");
-                //ZonedDateTime koreaTime = localTime.atDate(ZonedDateTime.now().toLocalDate()).atZone(koreaTimeZone);
-
-                // ZonedDateTime에서 LocalTime 추출
-                //LocalTime koreaLocalTime = koreaTime.toLocalTime();
-
-
-                // 현재 알람이 커져있고 설정값이 동일하면 알람 전송
-                if(timer.getIsAlarm() && timer.getUser().getFcmIsAllowed() && timer.getRemindTime().equals(now)) {
-                    System.out.println("================= 전송시간 =================");
-                    //sqs 푸시
-                    FCMPushRequestDto request = getPushMessage(timer,toastRepository.getUnReadToastNumber(timer.getUser().getUserId()) );
-
-                    sqsProducer.sendMessage(request, timer.getId().toString());
-
-                    System.out.println("========="+request.getTitle() + request.getBody()+"=========");
-
-                }
-        }, new CronTrigger(cronExpression));
-    }
 
     // 스케줄러에서 예약된 작업을 제거하는 메서드
     public static void clearScheduledTasks() {
@@ -171,50 +123,4 @@ public class FCMService {
         log.info("ScheduledFuture: {}", scheduledFuture);
     }
 
-    private FCMPushRequestDto getPushMessage(Reminder reminder, int unReadToastNumber){
-        Random random = new Random();
-        int randomNumber = random.nextInt(PUSH_MESSAGE_NUMBER);
-        String categoryTitle = "전체";
-
-                Category category = timerRepository.findCategoryByReminderId(reminder.getId());
-        if(category != null){
-            categoryTitle = category.getTitle();
-        }
-
-
-        String title="";
-        String body="";
-
-        switch (randomNumber) {
-            case 0 -> {
-                title = reminder.getUser().getNickname()+PushMessage.ALARM_MESSAGE_0.getTitle();
-                body = categoryTitle+PushMessage.ALARM_MESSAGE_0.getBody();
-            }
-            case 1 -> {
-                title = "띵동! " + categoryTitle+PushMessage.ALARM_MESSAGE_1.getTitle();
-                body = PushMessage.ALARM_MESSAGE_1.getBody();
-            }
-            case 2 -> {
-                title = reminder.getUser().getNickname()+"님, "+categoryTitle+PushMessage.ALARM_MESSAGE_2.getTitle();
-                body = PushMessage.ALARM_MESSAGE_2.getBody();
-            }
-            case 3 -> {
-                LocalDateTime now = LocalDateTime.now();
-
-                title =  now.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA)+"요일 "+now.getHour()+"시에는 "
-                        +categoryTitle+PushMessage.ALARM_MESSAGE_3.getTitle();
-                body = PushMessage.ALARM_MESSAGE_3.getBody();
-            }
-            case 4 -> {
-                title = reminder.getUser().getNickname()+"님, " +categoryTitle+PushMessage.ALARM_MESSAGE_4.getTitle();
-                body = PushMessage.ALARM_MESSAGE_4.getBody()+unReadToastNumber+"개 남아있어요";
-            }
-        };
-
-        return FCMPushRequestDto.builder()
-                .targetToken(reminder.getUser().getFcmToken())
-                .title(title)
-                .body(body)
-                .build();
-    }
 }

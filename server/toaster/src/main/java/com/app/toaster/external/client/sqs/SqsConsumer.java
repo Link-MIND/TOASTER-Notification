@@ -4,7 +4,6 @@ import com.app.toaster.controller.request.timer.CreateCronRequestDto;
 import com.app.toaster.controller.request.timer.UpdateCronDateTimeDto;
 import com.app.toaster.external.client.fcm.FCMPushRequestDto;
 import com.app.toaster.external.client.fcm.FCMService;
-import com.app.toaster.service.timer.TimerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import java.util.Map;
  */
 @Slf4j
 @Component
-
 @RequiredArgsConstructor
 public class SqsConsumer {
 
@@ -43,20 +41,13 @@ public class SqsConsumer {
 	@SqsListener(value = "${cloud.aws.sqs.notification.name}")
 	public void consume(@Payload String payload, @Headers Map<String, String> headers) {
 		System.out.println("======== 수신 받음 ==============");
-
-		//        log.info(headers.toString());
-
 		try {
 			FCMPushRequestDto request = objectMapper.readValue(payload, FCMPushRequestDto.class);
 			fcmService.pushAlarm(request);
-
-			//                log.info(SQS_CONSUME_LOG_MESSAGE + payload);
-
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
-
 
 	private void deleteMessage(String receiptHandle) {
 		System.out.println("========== deleteMessage =========");
@@ -66,6 +57,4 @@ public class SqsConsumer {
 			.build();
 		sqsAsyncClient.deleteMessage(deleteMessageRequest);
 	}
-
-
 }
