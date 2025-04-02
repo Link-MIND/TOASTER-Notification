@@ -25,7 +25,7 @@ public class Reminder{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	private User user;
 
 	@OneToOne
